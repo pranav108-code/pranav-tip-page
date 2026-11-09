@@ -337,7 +337,7 @@ export default function App() {
                 >
                   {formatAmount(value)}
 
-                  {value === amounts[2] && (
+                  {value === amounts[6] && (
                     <span className="popular">POPULAR</span>
                   )}
                 </button>

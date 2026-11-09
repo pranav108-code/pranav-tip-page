@@ -40,6 +40,21 @@ const currencies = {
   },
 };
 
+function loadRazorpayScript() {
+  return new Promise((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
+
 export default function App() {
   const [country, setCountry] = useState("IN");
   const [amount, setAmount] = useState(20);
@@ -49,6 +64,8 @@ export default function App() {
   const [consent, setConsent] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
 
   const selectedCurrency = currencies[country];
   const symbol = selectedCurrency.symbol;
@@ -61,7 +78,8 @@ export default function App() {
     amount === "custom"
       ? custom.trim() !== "" &&
         Number.isSafeInteger(finalAmount) &&
-        finalAmount > 500
+        finalAmount > 500 &&
+        finalAmount <= 100000
       : true;
 
   function formatAmount(value) {
@@ -73,25 +91,122 @@ export default function App() {
   }
 
   function changeCountry(newCountry) {
-    if (newCountry === "IR") return;
-
     setCountry(newCountry);
     setAmount(currencies[newCountry].amounts[2]);
     setCustom("");
     setConsent(false);
+    setPaymentError("");
   }
 
-  function handleContinue() {
-    if (!valid || !consent) return;
+  async function handleContinue() {
+    if (!valid || !consent || paymentLoading) return;
 
-    setSubmitted(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setPaymentError("");
+
+    if (country !== "IN") {
+      setPaymentError(
+        "International payments are not enabled yet. Please select India for now."
+      );
+      return;
+    }
+
+    setPaymentLoading(true);
+
+    try {
+      const scriptLoaded = await loadRazorpayScript();
+
+      if (!scriptLoaded) {
+        throw new Error("Unable to load Razorpay Checkout. Please try again.");
+      }
+
+      // Create a payment order on the secure server.
+      const orderResponse = await fetch("/api/create-order", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          amount: Math.round(finalAmount * 100),
+          currency: "INR",
+        }),
+      });
+
+      const orderData = await orderResponse.json();
+
+      if (!orderResponse.ok) {
+        throw new Error(orderData.error || "Could not create payment order.");
+      }
+
+      const options = {
+        key: orderData.keyId,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "PRANAV",
+        description: "Creator support tip",
+        order_id: orderData.orderId,
+        theme: {
+          color: "#19c9ed",
+        },
+
+        handler: async function (response) {
+          try {
+            const verifyResponse = await fetch("/api/verify-payment", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(response),
+            });
+
+            const verifyData = await verifyResponse.json();
+
+            if (!verifyResponse.ok || !verifyData.success) {
+              throw new Error(
+                verifyData.error || "Payment verification failed."
+              );
+            }
+
+            setPaymentLoading(false);
+            setSubmitted(true);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          } catch (error) {
+            setPaymentLoading(false);
+            setPaymentError(
+              error.message || "Payment verification failed. Contact support before trying again."
+            );
+          }
+        },
+
+        modal: {
+          ondismiss: function () {
+            setPaymentLoading(false);
+          },
+        },
+      };
+
+      const checkout = new window.Razorpay(options);
+
+      checkout.on("payment.failed", function (response) {
+        setPaymentLoading(false);
+        setPaymentError(
+          response.error?.description || "Payment failed. Please try again."
+        );
+      });
+
+      checkout.open();
+    } catch (error) {
+      setPaymentLoading(false);
+      setPaymentError(
+        error.message || "Something went wrong. Please try again."
+      );
+    }
   }
 
   function resetPage() {
     setSubmitted(false);
     setConsent(false);
     setShowPrivacy(false);
+    setPaymentError("");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -102,7 +217,6 @@ export default function App() {
       <div className="ice-particles" />
 
       <section className="tip-card">
-
         {submitted ? (
           <div className="thank-you">
             <div className="avatar-ring">
@@ -113,9 +227,7 @@ export default function App() {
               />
             </div>
 
-            <div className="creator-tag">
-              ✦ PRANAV ✦
-            </div>
+            <div className="creator-tag">✦ PRANAV ✦</div>
 
             <div className="success-icon">♡</div>
 
@@ -136,7 +248,7 @@ export default function App() {
             </div>
 
             <p className="demo-note">
-              This is a preview. No payment has been made.
+              Your payment signature has been verified.
             </p>
 
             <button
@@ -148,7 +260,7 @@ export default function App() {
             </button>
 
             <p className="footer">
-              Made with ♡ by <strong>PRANAV</strong>
+              Made with <span>♡</span> by <strong>PRANAV</strong>
             </p>
           </div>
         ) : (
@@ -220,6 +332,7 @@ export default function App() {
                   onClick={() => {
                     setAmount(value);
                     setCustom("");
+                    setPaymentError("");
                   }}
                 >
                   {formatAmount(value)}
@@ -239,6 +352,7 @@ export default function App() {
               onClick={() => {
                 setAmount("custom");
                 setCustom("");
+                setPaymentError("");
               }}
             >
               ＋ Choose a custom amount
@@ -257,6 +371,7 @@ export default function App() {
                     id="customAmount"
                     type="number"
                     min="501"
+                    max="100000"
                     step="1"
                     placeholder={`Enter amount above ${symbol}500`}
                     value={custom}
@@ -270,7 +385,7 @@ export default function App() {
 
                 {custom !== "" && !valid && (
                   <p className="error">
-                    Please enter a whole amount above {symbol}500.
+                    Enter a whole amount above {symbol}500 and no more than {symbol}100000.
                   </p>
                 )}
               </div>
@@ -372,19 +487,38 @@ export default function App() {
               ❄ Your support keeps me motivated!
             </p>
 
+            {country !== "IN" && (
+              <p className="helper">
+                International payments are not enabled yet.
+                Please select India for the current test.
+              </p>
+            )}
+
+            {paymentError && (
+              <p className="error" role="alert">
+                {paymentError}
+              </p>
+            )}
+
             <button
               type="button"
               className="support-button"
-              disabled={!valid || !consent}
+              disabled={
+                !valid ||
+                !consent ||
+                paymentLoading ||
+                country !== "IN"
+              }
               onClick={handleContinue}
             >
-              ♡ Continue with{" "}
-              {valid ? formatAmount(finalAmount) : "—"}
+              {paymentLoading
+                ? "Opening secure checkout..."
+                : `♡ Continue with ${formatAmount(finalAmount)}`}
             </button>
 
             <div className="footer-security">
               <span>
-                ♡ International payment integration coming soon
+                ♡ Secure checkout powered by Razorpay
               </span>
             </div>
 

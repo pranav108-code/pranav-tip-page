@@ -1,0 +1,31 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><style>body{margin:0;background:transparent;color:#fff;font:800 30px system-ui;text-align:center}#alert{display:none;margin:25px auto;padding:25px;max-width:700px;background:#071d38ec;border:2px solid #04f5ff;border-radius:24px;box-shadow:0 0 30px #00eaff}small{display:block;font-size:17px;color:#85f8ff}</style></head><body><div id="alert">🔊 <span id="name"></span><small>PRANAV MEME ALERT</small></div><script>
+const token=new URLSearchParams(location.search).get('token');
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+let busy=false;
+async function poll(){
+ if(busy||!token)return;
+ busy=true;
+ try{
+  const r=await fetch('/api/obs/next',{headers:{'x-obs-token':token},cache:'no-store'});
+  if(!r.ok)return;
+  const {alert}=await r.json();
+  if(!alert)return;
+  const panel=document.getElementById('alert');
+  document.getElementById('name').textContent=alert.name;
+  panel.style.display='block';
+  const audio=new Audio(alert.file);audio.volume=.7;
+  await new Promise((resolve,reject)=>{
+   const timer=setTimeout(()=>reject(Error('Playback timeout')),35000);
+   audio.onended=()=>{clearTimeout(timer);resolve()};
+   audio.onerror=()=>{clearTimeout(timer);reject(Error('Audio failed'))};
+   audio.play().catch(err => {
+  console.error("OBS AUDIO ERROR:", err);
+  reject(err);
+});
+  });
+  await fetch('/api/obs/ack',{method:'POST',headers:{'content-type':'application/json','x-obs-token':token},body:JSON.stringify({id:alert.id})});
+  await sleep(700);
+ }catch(e){console.error(e)}finally{document.getElementById('alert').style.display='none';busy=false}
+}
+setInterval(poll,1800);
+</script></body></html>

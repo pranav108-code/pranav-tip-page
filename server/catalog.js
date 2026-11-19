@@ -1,0 +1,23 @@
+export const catalog = [
+  ['yoisho','Yoisho Hai Yai Yai','Japanese & Anime',10,'yoisho-hai-yai-yai-12sec.mp3'],
+  ['erwin','Erwin’s Japanese Speech','Japanese & Anime',10,'erwin-speech-japanese.mp3'],
+  ['yamete','Yamete Kudasai','Japanese & Anime',5,'nibutani-shinka-yamete-kudasai_l46ccI7.mp3'],
+  ['wow','Anime Wow','Japanese & Anime',2,'wow-anime-voice-accent.mp3'],
+  ['holy','Holy Shitto','Japanese & Anime',2,'holy-shitto.mp3'],
+  ['anime','Anime Ahh','Japanese & Anime',2,'anime-ahh.mp3'],
+  ['neon','Neon — Go Go Go!','Valorant',2,'neon-go-go-go.mp3'],
+  ['operator','Operator Gunshots (4 sec)','Valorant',2,'valorant-operator-4sec.mp3'],
+  ['defuse','Spike Defuse','Valorant',2,'valorant-defuse.mp3'],
+  ['plant','Spike Plant','Valorant',2,'valorant-spike-plant.mp3'],
+  ['bone','Bone Crack','Special Voices',2,'bone-crack.mp3'],
+  ['eh','Eh Eh Ehhhh','Special Voices',5,'eh-eh-ehhhh.mp3'],
+  ['chalo','Chalo','Special Voices',2,'chalo.mp3'],
+  ['aayein','Aayein Meme','Special Voices',2,'aayein-meme.mp3'],
+  ['fart','Dry Fart','Special Voices',2,'dry-fart.mp3'],
+  ['snore','Snore Mimimimi','Special Voices',5,'snore-mimimimimimi.mp3'],
+  ['faaah','Faaah','Special Voices',2,'faaah.mp3'],
+  ['diwali','Happy Diwali (Jethalal Voice)','Special Voices',10,'AUD-20261108-WA0000.mp3'],
+  ['cid','CID Meme','Special Voices',10,'cid-le-mdc.mp3'],
+  ['dun','Dun Dun Dun','Special Voices',5,'dun-dun-dun-sound-effect-brass_8nFBccR.mp3'],
+].map(([id,name,category,price,file])=>({id,name,category,price,file}));
+export const byId = Object.fromEntries(catalog.map(s=>[s.id,s]));

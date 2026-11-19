@@ -83,7 +83,11 @@ button {
   height: 450px;
   left: -200px;
   top: 10%;
-  background: radial-gradient(circle, #0876ba44, transparent 70%);
+  background: radial-gradient(
+    circle,
+    #0876ba44,
+    transparent 70%
+  );
   filter: blur(35px);
 }
 
@@ -92,7 +96,11 @@ button {
   height: 500px;
   right: -230px;
   bottom: 5%;
-  background: radial-gradient(circle, #5654ff33, transparent 70%);
+  background: radial-gradient(
+    circle,
+    #5654ff33,
+    transparent 70%
+  );
   filter: blur(35px);
 }
 
@@ -104,10 +112,26 @@ button {
   opacity: 0.35;
 
   background-image:
-    radial-gradient(2px 2px at 20% 20%, #c9f6ff 50%, transparent),
-    radial-gradient(2px 2px at 80% 30%, #8beaff 50%, transparent),
-    radial-gradient(1px 1px at 50% 70%, #ffffff 50%, transparent),
-    radial-gradient(2px 2px at 90% 85%, #72cfff 50%, transparent);
+    radial-gradient(
+      2px 2px at 20% 20%,
+      #c9f6ff 50%,
+      transparent
+    ),
+    radial-gradient(
+      2px 2px at 80% 30%,
+      #8beaff 50%,
+      transparent
+    ),
+    radial-gradient(
+      1px 1px at 50% 70%,
+      #ffffff 50%,
+      transparent
+    ),
+    radial-gradient(
+      2px 2px at 90% 85%,
+      #72cfff 50%,
+      transparent
+    );
 
   background-size: 190px 190px;
   animation: snow 18s linear infinite;
@@ -201,7 +225,12 @@ h1 {
 }
 
 h1 span {
-  background: linear-gradient(90deg, #4deaff, #75a9ff);
+  background: linear-gradient(
+    90deg,
+    #4deaff,
+    #75a9ff
+  );
+
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -218,6 +247,7 @@ h1 span {
 
 .section-divider {
   height: 1px;
+
   background: linear-gradient(
     90deg,
     transparent,
@@ -225,6 +255,7 @@ h1 span {
     #628bff,
     transparent
   );
+
   margin: 23px 0;
   text-align: center;
   position: relative;
@@ -252,6 +283,21 @@ h2 {
   color: #9eb9d1;
   font-size: 12px;
   margin: 0 0 17px;
+}
+
+/* ===== INDIA ONLY ===== */
+
+.country-display {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  border: 1px solid #16cfee;
+  border-radius: 11px;
+  background: #0a1c30;
+  color: #70eaff;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
 }
 
 /* ===== AMOUNT BUTTONS ===== */
@@ -552,6 +598,7 @@ h2 {
 
 .support-button:hover:not(:disabled) {
   transform: translateY(-2px);
+
   box-shadow:
     0 0 18px #00cfffaa,
     0 0 35px #3c78ff66;
@@ -691,7 +738,6 @@ h2 {
   .page {
     padding: 20px 12px;
     align-items: flex-start;
-
     background-attachment: scroll;
   }
 

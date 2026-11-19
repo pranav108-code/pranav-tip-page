@@ -10,34 +10,6 @@ const currencies = {
     locale: "en-IN",
     amounts: [5, 10, 20, 50, 100, 300, 500, 1000],
   },
-  US: {
-    country: "United States",
-    currency: "USD",
-    symbol: "$",
-    locale: "en-US",
-    amounts: [1, 2, 5, 10, 20, 50, 100, 200],
-  },
-  PH: {
-    country: "Philippines",
-    currency: "PHP",
-    symbol: "₱",
-    locale: "en-PH",
-    amounts: [20, 50, 100, 200, 500, 1000, 2000, 5000],
-  },
-  JP: {
-    country: "Japan",
-    currency: "JPY",
-    symbol: "¥",
-    locale: "ja-JP",
-    amounts: [100, 300, 500, 1000, 2000, 5000, 10000, 20000],
-  },
-  CN: {
-    country: "China",
-    currency: "CNY",
-    symbol: "¥",
-    locale: "zh-CN",
-    amounts: [5, 10, 20, 50, 100, 200, 500, 1000],
-  },
 };
 
 function loadRazorpayScript() {
@@ -56,7 +28,8 @@ function loadRazorpayScript() {
 }
 
 export default function App() {
-  const [country, setCountry] = useState("IN");
+  const country = "IN";
+
   const [amount, setAmount] = useState(20);
   const [custom, setCustom] = useState("");
   const [name, setName] = useState("");
@@ -90,33 +63,19 @@ export default function App() {
     }).format(value);
   }
 
-  function changeCountry(newCountry) {
-    setCountry(newCountry);
-    setAmount(currencies[newCountry].amounts[2]);
-    setCustom("");
-    setConsent(false);
-    setPaymentError("");
-  }
-
   async function handleContinue() {
     if (!valid || !consent || paymentLoading) return;
 
     setPaymentError("");
-
-    if (country !== "IN") {
-      setPaymentError(
-        "International payments are not enabled yet. Please select India for now."
-      );
-      return;
-    }
-
     setPaymentLoading(true);
 
     try {
       const scriptLoaded = await loadRazorpayScript();
 
       if (!scriptLoaded) {
-        throw new Error("Unable to load Razorpay Checkout. Please try again.");
+        throw new Error(
+          "Unable to load Razorpay Checkout. Please try again."
+        );
       }
 
       // Create a payment order on the secure server.
@@ -134,7 +93,9 @@ export default function App() {
       const orderData = await orderResponse.json();
 
       if (!orderResponse.ok) {
-        throw new Error(orderData.error || "Could not create payment order.");
+        throw new Error(
+          orderData.error || "Could not create payment order."
+        );
       }
 
       const options = {
@@ -150,13 +111,16 @@ export default function App() {
 
         handler: async function (response) {
           try {
-            const verifyResponse = await fetch("/api/verify-payment", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(response),
-            });
+            const verifyResponse = await fetch(
+              "/api/verify-payment",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(response),
+              }
+            );
 
             const verifyData = await verifyResponse.json();
 
@@ -168,11 +132,16 @@ export default function App() {
 
             setPaymentLoading(false);
             setSubmitted(true);
-            window.scrollTo({ top: 0, behavior: "smooth" });
+
+            window.scrollTo({
+              top: 0,
+              behavior: "smooth",
+            });
           } catch (error) {
             setPaymentLoading(false);
             setPaymentError(
-              error.message || "Payment verification failed. Contact support before trying again."
+              error.message ||
+                "Payment verification failed. Contact support before trying again."
             );
           }
         },
@@ -189,7 +158,8 @@ export default function App() {
       checkout.on("payment.failed", function (response) {
         setPaymentLoading(false);
         setPaymentError(
-          response.error?.description || "Payment failed. Please try again."
+          response.error?.description ||
+            "Payment failed. Please try again."
         );
       });
 
@@ -197,7 +167,8 @@ export default function App() {
     } catch (error) {
       setPaymentLoading(false);
       setPaymentError(
-        error.message || "Something went wrong. Please try again."
+        error.message ||
+          "Something went wrong. Please try again."
       );
     }
   }
@@ -207,7 +178,11 @@ export default function App() {
     setConsent(false);
     setShowPrivacy(false);
     setPaymentError("");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   }
 
   return (
@@ -227,7 +202,9 @@ export default function App() {
               />
             </div>
 
-            <div className="creator-tag">✦ PRANAV ✦</div>
+            <div className="creator-tag">
+              ✦ PRANAV ✦
+            </div>
 
             <div className="success-icon">♡</div>
 
@@ -243,8 +220,15 @@ export default function App() {
             </div>
 
             <div className="thank-message">
-              {name && <strong>Thank you, {name}! 🥹</strong>}
-              <p>{message || "Sending you lots of love!"}</p>
+              {name && (
+                <strong>
+                  Thank you, {name}! 🥹
+                </strong>
+              )}
+
+              <p>
+                {message || "Sending you lots of love!"}
+              </p>
             </div>
 
             <p className="demo-note">
@@ -260,7 +244,8 @@ export default function App() {
             </button>
 
             <p className="footer">
-              Made with <span>♡</span> by <strong>PRANAV</strong>
+              Made with <span>♡</span> by{" "}
+              <strong>PRANAV</strong>
             </p>
           </div>
         ) : (
@@ -293,23 +278,12 @@ export default function App() {
               <span>✦</span>
             </div>
 
-            <h2>🌍 Choose your country</h2>
+            {/* INDIA ONLY */}
+            <h2>🇮🇳 Supported Country</h2>
 
-            <select
-              className="field country-select"
-              value={country}
-              onChange={(e) => changeCountry(e.target.value)}
-            >
-              <option value="IN">🇮🇳 India — INR (₹)</option>
-              <option value="US">🇺🇸 USA — USD ($)</option>
-              <option value="PH">🇵🇭 Philippines — PHP (₱)</option>
-              <option value="JP">🇯🇵 Japan — JPY (¥)</option>
-              <option value="CN">🇨🇳 China — CNY (¥)</option>
-            </select>
-
-            <p className="helper">
-              Select your country to see its currency.
-            </p>
+            <div className="field country-display">
+              🇮🇳 India — INR (₹)
+            </div>
 
             <div className="section-divider">
               <span>✦</span>
@@ -338,7 +312,9 @@ export default function App() {
                   {formatAmount(value)}
 
                   {value === amounts[3] && (
-                    <span className="popular">POPULAR</span>
+                    <span className="popular">
+                      POPULAR
+                    </span>
                   )}
                 </button>
               ))}
@@ -361,7 +337,8 @@ export default function App() {
             {amount === "custom" && (
               <div className="custom-section">
                 <label htmlFor="customAmount">
-                  CUSTOM AMOUNT ({selectedCurrency.currency})
+                  CUSTOM AMOUNT (
+                  {selectedCurrency.currency})
                 </label>
 
                 <div className="custom-wrapper">
@@ -375,7 +352,9 @@ export default function App() {
                     step="1"
                     placeholder={`Enter amount above ${symbol}500`}
                     value={custom}
-                    onChange={(e) => setCustom(e.target.value)}
+                    onChange={(e) =>
+                      setCustom(e.target.value)
+                    }
                   />
                 </div>
 
@@ -385,7 +364,9 @@ export default function App() {
 
                 {custom !== "" && !valid && (
                   <p className="error">
-                    Enter a whole amount above {symbol}500 and no more than {symbol}100000.
+                    Enter a whole amount above{" "}
+                    {symbol}500 and no more than{" "}
+                    {symbol}100000.
                   </p>
                 )}
               </div>
@@ -399,6 +380,7 @@ export default function App() {
               <label htmlFor="supporterName">
                 YOUR NAME (OPTIONAL)
               </label>
+
               <span>{name.length}/50</span>
             </div>
 
@@ -409,13 +391,16 @@ export default function App() {
               placeholder="Leave blank to stay anonymous"
               maxLength={50}
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) =>
+                setName(e.target.value)
+              }
             />
 
             <div className="field-heading">
               <label htmlFor="supportMessage">
                 MESSAGE (OPTIONAL)
               </label>
+
               <span>{message.length}/100</span>
             </div>
 
@@ -425,27 +410,36 @@ export default function App() {
               placeholder="Write something nice..."
               maxLength={100}
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={(e) =>
+                setMessage(e.target.value)
+              }
             />
 
             <label className="consent-box">
               <input
                 type="checkbox"
                 checked={consent}
-                onChange={(e) => setConsent(e.target.checked)}
+                onChange={(e) =>
+                  setConsent(e.target.checked)
+                }
               />
 
               <span>
                 I consent to the processing of my name,
-                message, and transaction details to process
-                this tip and display stream alerts, as per the{" "}
+                message, and transaction details to
+                process this tip and display stream
+                alerts, as per the{" "}
+
                 <button
                   type="button"
                   className="privacy-link"
-                  onClick={() => setShowPrivacy(!showPrivacy)}
+                  onClick={() =>
+                    setShowPrivacy(!showPrivacy)
+                  }
                 >
                   Privacy Policy
-                </button>.
+                </button>
+                .
               </span>
             </label>
 
@@ -454,7 +448,9 @@ export default function App() {
                 <button
                   className="close-privacy"
                   type="button"
-                  onClick={() => setShowPrivacy(false)}
+                  onClick={() =>
+                    setShowPrivacy(false)
+                  }
                   aria-label="Close privacy policy"
                 >
                   ×
@@ -464,9 +460,9 @@ export default function App() {
 
                 <p>
                   Your name and message are optional.
-                  If you make a real payment, transaction
-                  details will be processed to complete
-                  and verify the payment.
+                  If you make a real payment,
+                  transaction details will be processed
+                  to complete and verify the payment.
                 </p>
 
                 <p>
@@ -477,8 +473,8 @@ export default function App() {
                 <p>
                   A complete privacy policy explaining
                   data collection, retention, sharing and
-                  contact details must be published before
-                  real payments are enabled.
+                  contact details must be published
+                  before real payments are enabled.
                 </p>
               </div>
             )}
@@ -486,13 +482,6 @@ export default function App() {
             <p className="tip-hint">
               ❄ Your support keeps me motivated!
             </p>
-
-            {country !== "IN" && (
-              <p className="helper">
-                International payments are not enabled yet.
-                Please select India for the current test.
-              </p>
-            )}
 
             {paymentError && (
               <p className="error" role="alert">
@@ -506,8 +495,7 @@ export default function App() {
               disabled={
                 !valid ||
                 !consent ||
-                paymentLoading ||
-                country !== "IN"
+                paymentLoading
               }
               onClick={handleContinue}
             >
